@@ -29,6 +29,136 @@ Escola">
   <li><a href="jogos.html">jogos</a></li>
 </ul>
 
+
+
+    <!-- Conteúdo Principal (Jogo centralizado) -->
+    <main>
+        <div class="game-container">
+            <div id="status">Turno: Peças Vermelhas</div>
+            <div id="board"></div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer>
+        <p>&copy; 2026 - Desenvolvido por Mim. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Lógica do Jogo de Damas -->
+    <script>
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        
+        // Tabuleiro inicial: R = Vermelha, W = Branca, 0 = Vazio
+        let board = [
+            [0, 'W', 0, 'W', 0, 'W', 0, 'W'],
+            ['W', 0, 'W', 0, 'W', 0, 'W', 0],
+            [0, 'W', 0, 'W', 0, 'W', 0, 'W'],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            ['R', 0, 'R', 0, 'R', 0, 'R', 0],
+            [0, 'R', 0, 'R', 0, 'R', 0, 'R'],
+            ['R', 0, 'R', 0, 'R', 0, 'R', 0]
+        ];
+
+        let turn = 'R'; // 'R' começa (Vermelhas)
+        let selectedPiece = null;
+
+        function createBoard() {
+            boardElement.innerHTML = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('div');
+                    const isDark = (r + c) % 2 === 1;
+                    cell.className = `cell ${isDark ? 'dark' : 'light'}`;
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    if (isDark && board[r][c] !== 0) {
+                        const piece = document.createElement('div');
+                        piece.className = `piece ${board[r][c] === 'R' ? 'red-piece' : 'white-piece'}`;
+                        cell.appendChild(piece);
+                    }
+
+                    cell.addEventListener('click', onCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+            updateStatus();
+        }
+
+        function onCellClick(e) {
+            const cell = e.currentTarget;
+            const r = parseInt(cell.dataset.row);
+            const c = parseInt(cell.dataset.col);
+
+            // Se clicou na própria peça do seu turno, seleciona ela
+            if (board[r][c] === turn) {
+                if (selectedPiece) {
+                    document.querySelector(`[data-row="${selectedPiece.r}"][data-col="${selectedPiece.c}"]`).classList.remove('selected');
+                }
+                selectedPiece = { r, c };
+                cell.classList.add('selected');
+                return;
+            }
+
+            // Se já tem uma peça selecionada e clicou em uma casa vazia escura
+            if (selectedPiece && board[r][c] === 0 && (r + c) % 2 === 1) {
+                const moveResult = isValidMove(selectedPiece.r, selectedPiece.c, r, c);
+                
+                if (moveResult.valid) {
+                    // Executa o movimento no array lógico
+                    board[r][c] = turn;
+                    board[selectedPiece.r][selectedPiece.c] = 0;
+
+                    // Se foi uma captura, remove a peça comida
+                    if (moveResult.captured) {
+                        board[moveResult.captured.r][moveResult.captured.c] = 0;
+                    }
+
+                    // Tira a seleção visual, muda o turno e redesenha o tabuleiro
+                    selectedPiece = null;
+                    turn = turn === 'R' ? 'W' : 'R';
+                    createBoard();
+                }
+            }
+        }
+
+        function isValidMove(fromR, fromC, toR, toC) {
+            const rowDiff = toR - fromR;
+            const colDiff = toC - fromC;
+            const direction = turn === 'R' ? -1 : 1; // Vermelhas sobem (-1), Brancas descem (+1)
+
+            // Movimento simples simples de 1 casa diagonal (frente)
+            if (rowDiff === direction && Math.abs(colDiff) === 1) {
+                return { valid: true, captured: null };
+            }
+
+            // Movimento de captura (pular 2 casas diagonais)
+            if (rowDiff === direction * 2 && Math.abs(colDiff) === 2) {
+                const midR = fromR + direction;
+                const midC = fromC + (colDiff / 2);
+                const opponent = turn === 'R' ? 'W' : 'R';
+
+                if (board[midR][midC] === opponent) {
+                    return { valid: true, captured: { r: midR, c: midC } };
+                }
+            }
+
+            return { valid: false };
+        }
+
+        function updateStatus() {
+            statusElement.innerText = turn === 'R' ? 'Turno: Peças Vermelhas' : 'Turno: Peças Brancas';
+        }
+
+        // Inicializa o jogo ao carregar
+        createBoard();
+    </script>
+</body>
+</html>
+
+
 <!--conteudo-->
 
 <!--Seção rodapé é a parte final da paragrafo 3 da página-->
